@@ -1,0 +1,23 @@
+apply plugin: 'groovy'
+
+version = "1.0-SNAPSHOT"
+group = "info.novatec.testit"
+
+repositories {
+  	jcenter()
+    maven {
+      url "https://oss.sonatype.org/content/repositories/snapshots"
+    }
+}
+
+dependencies {
+	compile gradleApi()
+	compile localGroovy()
+    compile "info.novatec.testit:livingdoc-server:1.0-SNAPSHOT@jar"
+    compile "info.novatec.testit:livingdoc-client:1.0-SNAPSHOT@jar"
+    compile "info.novatec.testit:livingdoc-core:1.0-SNAPSHOT@jar"
+    compile "xmlrpc:xmlrpc:2.0.1"
+    compile "org.apache.commons:commons-lang3:3.4"
+    compile "commons-codec:commons-codec:1.9"
+    compile "commons-io:commons-io:2.4"
+}
