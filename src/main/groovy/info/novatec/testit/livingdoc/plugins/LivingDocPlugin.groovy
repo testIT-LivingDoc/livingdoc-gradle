@@ -3,6 +3,7 @@ package info.novatec.testit.livingdoc.plugins
 import info.novatec.testit.livingdoc.conventions.LivingDocPluginConvention
 import info.novatec.testit.livingdoc.dsl.LivingDocExtension;
 import info.novatec.testit.livingdoc.tasks.FreezeTask
+import info.novatec.testit.livingdoc.tasks.RunLivingDocSpecsTask;
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -21,6 +22,8 @@ class LivingDocPlugin implements Plugin<Project> {
   private Jar compileFixturesTask
   
   private FreezeTask freezeTask
+  
+  private RunLivingDocSpecsTask runLivingDocSpecsTask
   
   private LivingDocExtension livingDocExt
   
@@ -41,6 +44,7 @@ class LivingDocPlugin implements Plugin<Project> {
         this.createSourceSet()
         this.createCompileFixturesTask()
         this.createFreezeTask()
+        this.createRunLivindDocTask()
       } else {
         // TODO Throw exception
         println "Bad Exception"
@@ -95,9 +99,32 @@ class LivingDocPlugin implements Plugin<Project> {
     this.project.configure(this.freezeTask) {
       group this.project.LIVINGDOC_TASKS_GROUP
       description "Freezes the LivingDoc specifications"
-      repositoryUid (project.LIVINGDOC_REPOSITORY_UID)
-      repositoryUrl (project.LIVINGDOC_REPOSITORY_BASE_URL)
+      repositoryUrl this.livingDocExt.repositoryURL
+      repositoryUid this.livingDocExt.repositoryUID
       specsDirectory this.livingDocExt.specsDirectory.path
+      repositoryImplementation this.livingDocExt.respositoryImplementation
+    }
+  }
+  
+  private void createRunLivindDocTask() {
+    this.runLivingDocSpecsTask = this.project.tasks.create("livingDoc${this.project.name.capitalize()}Run", RunLivingDocSpecsTask)
+    this.runLivingDocSpecsTask.dependsOn this.compileFixturesTask, this.freezeTask
+    this.project.configure(this.runLivingDocSpecsTask){
+      group this.project.LIVINGDOC_TASKS_GROUP
+      description "Run LivingDoc specifications from directory ${this.livingDocExt.specsDirectory.path} on the ${this.project}"
+      workingDir this.project.buildDir // TODO Which is the working directory???
+      classPath this.compileFixturesTask.archivePath.path + ":" + this.project.sourceSets."${this.project.LIVINGDOC_SOURCESET_NAME}".runtimeClasspath.asPath
+      procArgs += [
+        'info.novatec.testit.livingdoc.runner.Main',
+        '-f',
+        "${this.livingDocExt.sudImplementation};${this.livingDocExt.sud}",
+        '--debug', // TODO should be changed
+        "--${this.livingDocExt.reportsType}",
+        '-s',
+        this.livingDocExt.specsDirectory.path,
+        '-o',
+        this.livingDocExt.reportsDirectory.path
+        ]
     }
   }
 } 

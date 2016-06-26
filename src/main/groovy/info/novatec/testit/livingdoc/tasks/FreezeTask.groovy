@@ -1,6 +1,5 @@
 package info.novatec.testit.livingdoc.tasks
 
-import info.novatec.testit.livingdoc.conventions.FreezeTaskConvention
 import info.novatec.testit.livingdoc.document.Document
 import info.novatec.testit.livingdoc.report.FileReportGenerator
 import info.novatec.testit.livingdoc.report.Report
@@ -23,16 +22,19 @@ class FreezeTask extends DefaultTask {
   @Input
   String specsDirectory
   
+  @Input
+  String repositoryImplementation
+  
   @TaskAction
   void freezeSpecifications() {
-    this.project.convention.plugins.freezeSpecification = new FreezeTaskConvention()
-    logger.lifecycle("repositoryBaseUrl ${repositoryUrl}")
-    logger.lifecycle("repositoryUid ${repositoryUid}")
-    logger.lifecycle("freezeTargetDir ${specsDirectory}")
+    logger.info("repositoryBaseUrl ${repositoryUrl}")
+    logger.info("repositoryUid ${repositoryUid}")
+    logger.info("freezeTargetDir ${specsDirectory}")
 
     assert repositoryUrl != null, 'repositoryUrl cannot be null'
     assert repositoryUid != null, 'repositoryUid cannot be null'
     assert specsDirectory != null, 'freezeTargetDir cannot be null'
+    assert repositoryImplementation != null, 'repositoryImplementation cannot be null'
 
     File specsDir = new File(specsDirectory);
     specsDir.deleteDir()
@@ -41,7 +43,7 @@ class FreezeTask extends DefaultTask {
     logger.info("Start freezing specifications from '${repositoryUrl}' to directory '${specsDirectory}'.")
 
     Repository repository = new Repository();
-    repository.setType(project.REPOSITORY_IMPLEMENTATION_CLASS.toString());
+    repository.setType(repositoryImplementation);
     repository.setRoot(repositoryUrl);
     
     freeze(repository.getDocumentRepository())
