@@ -34,6 +34,8 @@ class LivingDocPlugin implements Plugin<Project> {
     this.project = project
     this.project.convention.plugins.livingDoc = new LivingDocPluginConvention()
     this.livingDocExt = this.project.extensions.create( LivingDocExtension.NAME, LivingDocExtension, this.project )
+    this.project.configurations.create("${this.project.LIVINGDOC_SOURCESET_NAME}Compile")
+    this.project.configurations.create("${this.project.LIVINGDOC_SOURCESET_NAME}Runtime")
    
     /**
      * check whether the livingdoc extension is configured
@@ -65,8 +67,8 @@ class LivingDocPlugin implements Plugin<Project> {
         runtimeClasspath += compileClasspath
       }
       // TODO extends the compile/runtimeClasspath from the test configurations???
-      this.project.configurations.getByName(ldSourceSet.getCompileConfigurationName()).extendsFrom(this.project.configurations.testCompile)
-      this.project.configurations.getByName(ldSourceSet.getRuntimeConfigurationName()).extendsFrom(this.project.configurations.testRuntime)
+      this.project.configurations.getByName(ldSourceSet.getCompileConfigurationName()).extendsFrom(this.project.configurations."${this.project.LIVINGDOC_SOURCESET_NAME}Compile")
+      this.project.configurations.getByName(ldSourceSet.getRuntimeConfigurationName()).extendsFrom(this.project.configurations."${this.project.LIVINGDOC_SOURCESET_NAME}Runtime")
 
       this.project.plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) {
         this.project.eclipse {
@@ -113,7 +115,7 @@ class LivingDocPlugin implements Plugin<Project> {
       group this.project.LIVINGDOC_TASKS_GROUP
       description "Run LivingDoc specifications from directory ${this.livingDocExt.specsDirectory.path} on the ${this.project}"
       workingDir this.project.buildDir // TODO Which is the working directory???
-      classPath this.compileFixturesTask.archivePath.path + ":" + this.project.sourceSets."${this.project.LIVINGDOC_SOURCESET_NAME}".runtimeClasspath.asPath
+      classPath this.compileFixturesTask.archivePath.path + File.pathSeparator + this.project.sourceSets."${this.project.LIVINGDOC_SOURCESET_NAME}".runtimeClasspath.asPath
       procArgs += [
         'info.novatec.testit.livingdoc.runner.Main',
         '-f',
@@ -125,6 +127,7 @@ class LivingDocPlugin implements Plugin<Project> {
         '-o',
         this.livingDocExt.reportsDirectory.path
         ]
+      showOutput true
     }
   }
 } 

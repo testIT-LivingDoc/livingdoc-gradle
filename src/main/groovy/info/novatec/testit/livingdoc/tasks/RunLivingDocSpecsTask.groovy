@@ -27,7 +27,7 @@ class RunLivingDocSpecsTask extends DefaultTask{
   @TaskAction
   void runLivingDoc() {
     
-    List<String> processCmd = ["${System.properties.'java.home'}/bin/java".toString(), '-cp', classPath]
+    List<String> processCmd = ["${System.properties.'java.home'}${File.separator}bin${File.separator}java".toString(), '-cp', classPath]
     processCmd += procArgs*.toString()
     logger.info("Execute the process with: {}", processCmd.iterator().join(' '))
 
