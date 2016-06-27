@@ -16,34 +16,37 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
 class LivingDocPlugin implements Plugin<Project> {
-  
+
   private Project project
-  
+
   private Jar compileFixturesTask
-  
+
   private FreezeTask freezeTask
-  
+
   private RunLivingDocSpecsTask runLivingDocSpecsTask
-  
+
   private LivingDocExtension livingDocExt
   
+  private SourceSet ldSourceSet
+
   Logger logger = Logging.getLogger(LivingDocPlugin.class)
-  
-	@Override
-	public void apply(Project project) {
+
+  @Override
+  public void apply(Project project) {
     this.project = project
     this.project.convention.plugins.livingDoc = new LivingDocPluginConvention()
     this.livingDocExt = this.project.extensions.create( LivingDocExtension.NAME, LivingDocExtension, this.project )
-    this.project.configurations.create("${this.project.LIVINGDOC_SOURCESET_NAME}Compile")
-    this.project.configurations.create("${this.project.LIVINGDOC_SOURCESET_NAME}Runtime")
-   
+
+    this.createSourceSet()
     /**
      * check whether the livingdoc extension is configured
      */
     this.project.afterEvaluate {
       if (true) {
-        this.project.apply(plugin: org.gradle.api.plugins.JavaBasePlugin) // TODO check if needed
-        this.createSourceSet()
+        this.project.configure(ldSourceSet) {
+          java.srcDirs this.project.file(this.livingDocExt.sourceDirectory.path + File.separator + 'java') // may be only the path to the fixtures dir e.g. src/fixture/
+          resources.srcDirs this.project.file(this.livingDocExt.sourceDirectory.path + File.separator + 'resources')
+        }
         this.createCompileFixturesTask()
         this.createFreezeTask()
         this.createRunLivindDocTask()
@@ -52,28 +55,24 @@ class LivingDocPlugin implements Plugin<Project> {
         println "Bad Exception"
       }
     }
-	}
-  
+  }
+
   private createSourceSet() {
-    SourceSet ldSourceSet = this.project.sourceSets.create(this.project.LIVINGDOC_SOURCESET_NAME)
-    this.project.configure(ldSourceSet) {
-      java.srcDirs this.project.file(this.livingDocExt.sourceDirectory.path) // may be only the path to the fixtures dir e.g. src/fixture/
-      // TODO do we need something like this???
-      //resources.srcDirs this.project.file("src/${dashSeparated}/resources")
-    }
+    ldSourceSet = this.project.sourceSets.create(this.project.LIVINGDOC_SOURCESET_NAME)
+    this.project.configurations.getByName(ldSourceSet.getCompileConfigurationName()){ transitive = false }
+    this.project.configurations.getByName(ldSourceSet.getRuntimeConfigurationName()){ transitive = false }
+
     this.project.plugins.withType(JavaPlugin) {
       this.project.configure(ldSourceSet) {
         compileClasspath += this.project.sourceSets.getByName('main').output
         runtimeClasspath += compileClasspath
       }
-      
+
       this.project.plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) {
         this.project.eclipse {
           classpath {
-            plusConfigurations.add(this.project.configurations.getByName(sourceSetType.getCompileConfigurationName()))
-            this.project.configurations.getByName(sourceSetType.getCompileConfigurationName()){ transitive = false }
-            plusConfigurations.add(this.project.configurations.getByName(sourceSetType.getRuntimeConfigurationName()))
-            this.project.configurations.getByName(sourceSetType.getRuntimeConfigurationName()){ transitive = false }
+            plusConfigurations.add(this.project.configurations.getByName(ldSourceSet.getCompileConfigurationName()))
+            plusConfigurations.add(this.project.configurations.getByName(ldSourceSet.getRuntimeConfigurationName()))
           }
         }
       }
@@ -92,7 +91,7 @@ class LivingDocPlugin implements Plugin<Project> {
       destinationDir project.file("${project.buildDir}/${this.project.LIVINGDOC_SOURCESET_NAME}")
     }
   }
-  
+
   private void createFreezeTask() {
     this.freezeTask = this.project.tasks.create("freeze", FreezeTask)
     this.project.configure(this.freezeTask) {
@@ -104,7 +103,7 @@ class LivingDocPlugin implements Plugin<Project> {
       repositoryImplementation this.livingDocExt.respositoryImplementation
     }
   }
-  
+
   private void createRunLivindDocTask() {
     this.runLivingDocSpecsTask = this.project.tasks.create("livingDoc${this.project.name.capitalize()}Run", RunLivingDocSpecsTask)
     this.runLivingDocSpecsTask.dependsOn this.compileFixturesTask, this.freezeTask
@@ -117,14 +116,15 @@ class LivingDocPlugin implements Plugin<Project> {
         'info.novatec.testit.livingdoc.runner.Main',
         '-f',
         "${this.livingDocExt.sudImplementation};${this.livingDocExt.sud}",
-        '--debug', // TODO should be changed
+        '--debug',
+        // TODO should be changed
         "--${this.livingDocExt.reportsType}",
         '-s',
         this.livingDocExt.specsDirectory.path,
         '-o',
         this.livingDocExt.reportsDirectory.path
-        ]
+      ]
       showOutput true
     }
   }
-} 
+}
