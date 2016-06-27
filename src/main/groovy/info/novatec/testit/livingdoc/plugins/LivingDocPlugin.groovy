@@ -66,10 +66,7 @@ class LivingDocPlugin implements Plugin<Project> {
         compileClasspath += this.project.sourceSets.getByName('main').output
         runtimeClasspath += compileClasspath
       }
-      // TODO extends the compile/runtimeClasspath from the test configurations???
-      this.project.configurations.getByName(ldSourceSet.getCompileConfigurationName()).extendsFrom(this.project.configurations."${this.project.LIVINGDOC_SOURCESET_NAME}Compile")
-      this.project.configurations.getByName(ldSourceSet.getRuntimeConfigurationName()).extendsFrom(this.project.configurations."${this.project.LIVINGDOC_SOURCESET_NAME}Runtime")
-
+      
       this.project.plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) {
         this.project.eclipse {
           classpath {
