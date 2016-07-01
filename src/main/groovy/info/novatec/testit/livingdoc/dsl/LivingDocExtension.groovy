@@ -1,35 +1,36 @@
 package info.novatec.testit.livingdoc.dsl
 
-import org.gradle.api.Project
+import java.io.File;
 
 class LivingDocExtension {
   
-  final static String NAME = 'livingdoc'
+  public Boolean debug = false
   
-  def String sudImplementation = "info.novatec.testit.livingdoc.systemunderdevelopment.DefaultSystemUnderDevelopment"
+  public File fixtureSourceDirectory
+
+  public File specsDirectory
+
+  public File resources
+
+  public File reportsDirectory
   
-  def String respositoryImplementation = ""
+  public String name
   
-  def String repositoryURL = ""
+  public String sudImplementation = "info.novatec.testit.livingdoc.systemunderdevelopment.DefaultSystemUnderDevelopment"
+
+  public String respositoryImplementation = ""
+
+  public String repositoryURL = ""
+
+  public String repositoryUID = ""
+
+  public String reportsType = ""
+
+  public String sud = ""
   
-  def String repositoryUID = ""
+  public String livingDocRunner = 'info.novatec.testit.livingdoc.runner.Main'
   
-  def String reportsType = "html"
-  
-  def String sud = ""
-  
-  def Boolean debug = false
-  
-  // TODO should be relative to the project dir???
-  def File sourceDirectory
-  
-  def File specsDirectory
-  
-  def File reportsDirectory
-  
-  public LivingDocExtension(Project project) {
-    this.sourceDirectory = new File("${project.projectDir}/src/fixtures/java")
-    this.specsDirectory = new File("${project.buildDir}/livingdoc/specifications")
-    this.reportsDirectory = new File("${project.buildDir}/livingdoc/reports")
+  public LivingDocExtension(String name) {
+    this.name = name
   }
 }

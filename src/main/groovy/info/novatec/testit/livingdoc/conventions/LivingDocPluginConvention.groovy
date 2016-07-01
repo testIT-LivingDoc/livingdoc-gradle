@@ -6,6 +6,4 @@ class LivingDocPluginConvention {
   
   String LIVINGDOC_SOURCESET_NAME = 'livingdoc'
   
-  String LIVINGDOC_TARGET_VERSION = '1.0.0-SNAPSHOT'
-  
 }
