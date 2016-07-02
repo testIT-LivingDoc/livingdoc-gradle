@@ -10,11 +10,5 @@ repositories {
 dependencies {
 	compile gradleApi()
 	compile localGroovy()
-    compile "info.novatec.testit:livingdoc-server:${LIVINGDOC_VERSION}@jar"
-    compile "info.novatec.testit:livingdoc-client:${LIVINGDOC_VERSION}@jar"
     compile "info.novatec.testit:livingdoc-core:${LIVINGDOC_VERSION}@jar"
-    compile "xmlrpc:xmlrpc:2.0.1"
-    compile "org.apache.commons:commons-lang3:3.4"
-    compile "commons-codec:commons-codec:1.9"
-    compile "commons-io:commons-io:2.4"
 }
