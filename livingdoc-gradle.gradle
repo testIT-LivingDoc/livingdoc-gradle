@@ -6,9 +6,14 @@ group = "info.novatec.testit"
 repositories {
     mavenCentral()
 }
-
+configurations.all{
+	transitive = false
+	resolutionStrategy{ force 'org.codehaus.groovy:groovy-all:2.4.4' }
+}
+	
 dependencies {
 	compile gradleApi()
 	compile localGroovy()
     compile "info.novatec.testit:livingdoc-core:${LIVINGDOC_VERSION}@jar"
+    testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
 }

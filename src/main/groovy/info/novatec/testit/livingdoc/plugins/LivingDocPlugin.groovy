@@ -42,11 +42,14 @@ class LivingDocPlugin implements Plugin<Project> {
 
     this.livingDocExtContainer.whenObjectAdded { LivingDocDsl livingdocExtension ->
       SourceSet extensionSourceSet = this.createExtensionSourceSet(livingdocExtension.name, livingdocExtension)
+      Jar compileFixturesTask = this.createCompileFixturesTask(livingdocExtension, extensionSourceSet)
       this.project.afterEvaluate {
+        this.livingDocExtContainerPrerequisite(livingdocExtension)
         this.configureSourceSet(livingdocExtension, extensionSourceSet)
-        Jar compileSourceSetSourcesTask = this.createCompileFixturesTask(livingdocExtension, extensionSourceSet)
-        this.manageFreezeFromRepositories(livingdocExtension)
-        this.createRunTasks(compileSourceSetSourcesTask, livingdocExtension, extensionSourceSet)
+        if (livingdocExtension.repositories) {
+          this.manageFreezeFromRepositories(livingdocExtension)
+          this.createRunTasks(compileFixturesTask, livingdocExtension, extensionSourceSet)
+        }
       }
     }
   }
@@ -109,19 +112,26 @@ class LivingDocPlugin implements Plugin<Project> {
       classifier = livingdocExtension.name
       version = this.project.version
       from extensionSourceSet.output
-      destinationDir this.project.file("${project.buildDir}/${livingdocExtension.name}")
+      destinationDir this.project.file("${project.buildDir}/${this.project.LIVINGDOC_SOURCESET_NAME}/${livingdocExtension.name}")
     }
     return compileFixturesTask
   }
 
   private void manageFreezeFromRepositories(LivingDocDsl livingdocExtension) {
-    DefaultTask freezeAllRepositoriesSpecsTask = this.project.tasks.create("freezeAllSpecs", DefaultTask)
-    this.project.configure(freezeAllRepositoriesSpecsTask) {
-      group this.project.LIVINGDOC_TASKS_GROUP
-      description "Freezes the livingDoc specifications of all repositories"
-    }
+    def freezeTasks = []
     livingdocExtension.repositories.each {
-      freezeAllRepositoriesSpecsTask.dependsOn this.createFreezeTask(livingdocExtension, it)
+      if (!it.repositoryURL || !it.repositoryUID || !it.respositoryImplementation) {
+        throw new Exception("Some of the required repository attributes (repositoryURL, repositoryUID, respositoryImplementation) from ${it.name} are empty!")
+      }
+      freezeTasks += this.createFreezeTask(livingdocExtension, it)
+    }
+    if (this.livingDocExtContainer.size() > 1) {
+      DefaultTask freezeAllRepositoriesSpecsTask = this.project.tasks.maybeCreate("freezeAllSpecs", DefaultTask)
+      this.project.configure(freezeAllRepositoriesSpecsTask) {
+        group this.project.LIVINGDOC_TASKS_GROUP
+        description "Freezes the livingDoc specifications of all repositories"
+        dependsOn << freezeTasks
+      }
     }
   }
   
@@ -163,8 +173,9 @@ class LivingDocPlugin implements Plugin<Project> {
     }
   }
 
-  private boolean checkldExtPrerequisite(LivingDocDsl extension) {
-    println "Check if ${extension.fixtureSourceDirectory.path} exists: " + extension.fixtureSourceDirectory.exists()
-    return extension.fixtureSourceDirectory.exists()
+  private livingDocExtContainerPrerequisite(LivingDocDsl extension) {
+    if (!extension.fixtureSourceDirectory || !extension.specsDirectory || !extension.systemUnderDevelopment) {
+      throw new Exception("Some of the required attributes (fixtureSourceDirectory, specsDirectory, systemUnderDevelopment) from ${extension.name} are empty!")
+    }
   }
 }
