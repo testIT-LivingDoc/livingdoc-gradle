@@ -27,33 +27,29 @@ class FreezeTask extends DefaultTask {
   
   @TaskAction
   void freezeSpecifications() {
-    logger.info("repositoryBaseUrl ${repositoryUrl}")
-    logger.info("repositoryUid ${repositoryUid}")
-    logger.info("freezeTargetDir ${specsDirectory}")
-
     assert repositoryUrl != null, 'repositoryUrl cannot be null'
     assert repositoryUid != null, 'repositoryUid cannot be null'
     assert specsDirectory != null, 'freezeTargetDir cannot be null'
     assert repositoryImplementation != null, 'repositoryImplementation cannot be null'
-
+    
     File specsDir = new File(specsDirectory);
     specsDir.deleteDir()
     specsDir.mkdir()
 
-    logger.info("Start freezing specifications from '${repositoryUrl}' to directory '${specsDirectory}'.")
+    logger.info("Start freezing specifications from '${repositoryUrl}' to directory '${specsDirectory}' with repositoryUid ${repositoryUid}.")
 
     Repository repository = new Repository();
     repository.setType(repositoryImplementation);
     repository.setRoot(repositoryUrl);
     
-    freeze(repository.getDocumentRepository())
+    this.freeze(repository.getDocumentRepository())
     
     File specSourceDir = new File(specsDirectory, repositoryUid)
 
     logger.info("Freezing and sorting specifications completed.")
   }
   
-  private freeze(DocumentRepository repository) {
+  private void freeze(DocumentRepository repository) {
     FileReportGenerator generator = new FileReportGenerator(new File(specsDirectory));
     generator.adjustReportFilesExtensions(true);
     Document doc;

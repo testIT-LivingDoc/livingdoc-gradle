@@ -38,6 +38,7 @@ class LivingDocPlugin implements Plugin<Project> {
       this.project.afterEvaluate {
         this.configureSourceSet(livingdocExtension, extensionSourceSet)
         Jar compileSourceSetSourcesTask = this.createCompileFixturesTask(livingdocExtension, extensionSourceSet)
+        this.createFreezeTask(livingdocExtension, extensionSourceSet)
         this.createRunTasks(compileSourceSetSourcesTask, livingdocExtension, extensionSourceSet)
       }
     }
@@ -105,7 +106,7 @@ class LivingDocPlugin implements Plugin<Project> {
   }
 
   private void createFreezeTask(LivingDocExtension livingdocExtension, SourceSet extensionSourceSet) {
-    FreezeTask freezeTask = this.project.tasks.create("freeze${livingdocExtension.name}", FreezeTask)
+    FreezeTask freezeTask = this.project.tasks.create("freeze${livingdocExtension.name.capitalize()}", FreezeTask)
     this.project.configure(freezeTask) {
       group this.project.LIVINGDOC_TASKS_GROUP
       description "Freezes the LivingDoc specifications of ${livingdocExtension.name}"
@@ -120,34 +121,23 @@ class LivingDocPlugin implements Plugin<Project> {
    * Creates a run task per LivingDocExtension configuration
    */
   private createRunTasks(Jar compileFixturesTask, LivingDocExtension livingdocExtension, SourceSet extensionSourceSet) {
-    def runSpecsArgs = [
-      livingdocExtension.livingDocRunner,
-      '-f',
-      livingdocExtension.sudImplementation + ';' + livingdocExtension.sud,
-     
-    ]
-    if (livingdocExtension.debug) {
-     runSpecsArgs += [ '--debug' ]
-    }
-    if (livingdocExtension.reportsType) {
-     runSpecsArgs += [ '--' + livingdocExtension.reportsType ]
-    }
-    runSpecsArgs += [ '-s', livingdocExtension.specsDirectory?.path ]
-    
-    if (livingdocExtension.reportsDirectory) {
-     runSpecsArgs += ['-o', livingdocExtension.reportsDirectory.path]
-    } else {
-    
-    runSpecsArgs += ['-o', project.buildDir.path + '/livingdoc/reports' ]
-    }
-    
     RunLivingDocSpecsTask livingDocRunTask = project.tasks.create("${livingdocExtension.name}Run", RunLivingDocSpecsTask)
     this.project.configure(livingDocRunTask) {
       group this.project.LIVINGDOC_TASKS_GROUP
       description "Run ${livingdocExtension.name} specifications from directory ${livingdocExtension.specsDirectory.path} on the ${this.project}"
       workingDir this.project.projectDir
       classPath compileFixturesTask.archivePath.path + File.pathSeparator + extensionSourceSet.runtimeClasspath.asPath
-      procArgs += runSpecsArgs
+      procArgs += [
+        livingdocExtension.livingDocRunner,
+        '-f',
+        livingdocExtension.sudImplementation + ';' + livingdocExtension.sud,
+        ((livingdocExtension.debug) ? '--debug' : ''),
+        ((livingdocExtension.reportsType) ? '--' + livingdocExtension.reportsType : ''),
+        '-s',
+        livingdocExtension.specsDirectory?.path,
+        '-o',
+        ((livingdocExtension.reportsDirectory) ?  livingdocExtension.reportsDirectory.path : project.buildDir.path + '/livingdoc/reports')
+      ]
       showOutput true
     }
   }
