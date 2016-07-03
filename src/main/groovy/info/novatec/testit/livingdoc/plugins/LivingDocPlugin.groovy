@@ -39,10 +39,19 @@ class LivingDocPlugin implements Plugin<Project> {
       it.resources = this.project.container(LivingDocResourceDsl)
     }
     this.project.extensions.add( this.project.LIVINGDOC_SOURCESET_NAME, livingDocExtContainer)
+    this.project.apply(plugin: JavaPlugin)
+    
+    // create the default LivingDoc sourceSet and configurations livingdocCompile and livingdocRuntime
+    SourceSet ldDefautSS = this.createExtensionSourceSet("") 
+    // Let both configurations extend the compile/runtime test configurations
+    this.project.configurations.getByName(ldDefautSS.getCompileConfigurationName()).extendsFrom(this.project.configurations.testCompile)
+    this.project.configurations.getByName(ldDefautSS.getRuntimeConfigurationName()).extendsFrom(this.project.configurations.testRuntime)
 
     this.livingDocExtContainer.whenObjectAdded { LivingDocDsl livingdocExtension ->
-      this.project.apply(plugin: JavaPlugin)
-      SourceSet extensionSourceSet = this.createExtensionSourceSet(livingdocExtension.name, livingdocExtension)
+      SourceSet extensionSourceSet = this.createExtensionSourceSet(livingdocExtension.name)
+      // Let both extensionSourceSet compile/runtime configurations extend the default two configurations
+      this.project.configurations.getByName(extensionSourceSet.getCompileConfigurationName()).extendsFrom(this.project.configurations."${ldDefautSS.getCompileConfigurationName()}")
+      this.project.configurations.getByName(extensionSourceSet.getRuntimeConfigurationName()).extendsFrom(this.project.configurations."${ldDefautSS.getRuntimeConfigurationName()}")
       Jar compileFixturesTask = this.createCompileFixturesTask(livingdocExtension, extensionSourceSet)
       this.project.afterEvaluate {
         this.livingDocExtContainerPrerequisite(livingdocExtension)
@@ -58,8 +67,8 @@ class LivingDocPlugin implements Plugin<Project> {
   /**
    * This method is executed as soon as a LivingDocExtention configuration is created
    */
-  private SourceSet createExtensionSourceSet(String extensionName, LivingDocDsl extension) {
-    SourceSet extensionSourceSet = this.project.sourceSets.create(extensionName)
+  private SourceSet createExtensionSourceSet(String extensionName) {
+    SourceSet extensionSourceSet = this.project.sourceSets.create("${this.project.LIVINGDOC_SOURCESET_NAME}${extensionName.capitalize()}")
     this.project.configurations.getByName(extensionSourceSet.getCompileConfigurationName()){ transitive = false }
     this.project.configurations.getByName(extensionSourceSet.getRuntimeConfigurationName()){ transitive = false }
     logger.info("Configuration with name ${} created!!!", extensionSourceSet.getCompileConfigurationName())
@@ -153,7 +162,7 @@ class LivingDocPlugin implements Plugin<Project> {
    * Creates a run task per LivingDocDsl configuration
    */
   private createRunTasks(Jar compileFixturesTask, LivingDocDsl livingdocExtension, SourceSet extensionSourceSet) {
-    RunLivingDocSpecsTask livingDocRunTask = project.tasks.create("${this.project.LIVINGDOC_SOURCESET_NAME}${livingdocExtension.name.capitalize()}", RunLivingDocSpecsTask)
+    RunLivingDocSpecsTask livingDocRunTask = project.tasks.create("run${this.project.LIVINGDOC_SOURCESET_NAME.capitalize()}${livingdocExtension.name.capitalize()}", RunLivingDocSpecsTask)
     def additionalClasspath = livingdocExtension.additionalRunClasspath ?: ""
     def additionalRunArgs = livingdocExtension.additionalRunArgs ?: []
     this.project.configure(livingDocRunTask) {
