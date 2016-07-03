@@ -41,6 +41,7 @@ class LivingDocPlugin implements Plugin<Project> {
     this.project.extensions.add( this.project.LIVINGDOC_SOURCESET_NAME, livingDocExtContainer)
 
     this.livingDocExtContainer.whenObjectAdded { LivingDocDsl livingdocExtension ->
+      this.project.apply(plugin: JavaPlugin)
       SourceSet extensionSourceSet = this.createExtensionSourceSet(livingdocExtension.name, livingdocExtension)
       Jar compileFixturesTask = this.createCompileFixturesTask(livingdocExtension, extensionSourceSet)
       this.project.afterEvaluate {

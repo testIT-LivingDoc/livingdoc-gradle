@@ -10,12 +10,12 @@ class LivingDocPluginTest extends Specification {
     Project project = ProjectBuilder.builder().build()
     
     def setup() {
-        project.apply plugin: JavaPlugin
         project.apply plugin: LivingDocPlugin
     }
 
     def "check initial setup"() {
       expect:
+      project.apply plugin: JavaPlugin
       project.sourceSets.size() == 2
       
       when:
@@ -29,6 +29,7 @@ class LivingDocPluginTest extends Specification {
     
   def "insert two livingdoc configuration"() {
       expect:
+      project.apply plugin: JavaPlugin
       project.sourceSets.size() == 2
       
       when:
