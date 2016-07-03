@@ -21,6 +21,10 @@ class LivingDocDsl {
   public String sud
   
   public String livingDocRunner = 'info.novatec.testit.livingdoc.runner.Main'
+  
+  public List<String> additionalRunArgs
+  
+  public String additionalRunClasspath
 
   public NamedDomainObjectContainer<LivingDocResourceDsl> resources
   

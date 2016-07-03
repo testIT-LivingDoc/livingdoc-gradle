@@ -154,12 +154,15 @@ class LivingDocPlugin implements Plugin<Project> {
    */
   private createRunTasks(Jar compileFixturesTask, LivingDocDsl livingdocExtension, SourceSet extensionSourceSet) {
     RunLivingDocSpecsTask livingDocRunTask = project.tasks.create("${this.project.LIVINGDOC_SOURCESET_NAME}${livingdocExtension.name.capitalize()}", RunLivingDocSpecsTask)
+    def additionalClasspath = livingdocExtension.additionalRunClasspath ?: ""
+    def additionalRunArgs = livingdocExtension.additionalRunArgs ?: []
     this.project.configure(livingDocRunTask) {
       group this.project.LIVINGDOC_TASKS_GROUP
       description "Run ${livingdocExtension.name} specifications from directory ${livingdocExtension.specsDirectory.path} on the ${this.project}"
       workingDir this.project.projectDir
-      classPath compileFixturesTask.archivePath.path + File.pathSeparator + extensionSourceSet.runtimeClasspath.asPath
+      classPath additionalClasspath + File.pathSeparator + compileFixturesTask.archivePath.path + File.pathSeparator + extensionSourceSet.runtimeClasspath.asPath
       procArgs += [
+        *additionalRunArgs,
         livingdocExtension.livingDocRunner,
         '-f',
         livingdocExtension.systemUnderDevelopment + ';' + livingdocExtension.sud,
