@@ -1,0 +1,32 @@
+apply plugin: 'groovy'
+apply plugin: 'maven'
+
+version = LIVINGDOC_GRADLE_VERSION
+group = "info.novatec.testit"
+
+repositories {
+  jcenter()
+}
+
+configurations.all {
+  transitive = false
+}
+  
+dependencies {
+  compile gradleApi()
+  compile localGroovy()
+  compile "info.novatec.testit:livingdoc-core:${LIVINGDOC_VERSION}@jar"
+    
+  runtime "info.novatec.testit:livingdoc-server:${LIVINGDOC_VERSION}@jar"
+  runtime "info.novatec.testit:livingdoc-client:1.1.2@jar"
+  runtime "xmlrpc:xmlrpc:2.0.1"
+  runtime "org.apache.commons:commons-lang3:3.4"
+  runtime "commons-codec:commons-codec:1.9"
+  runtime "commons-io:commons-io:2.4"
+  
+  // needed test dependencies 
+  testCompile gradleTestKit()
+  testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+    exclude module: 'groovy-all'
+  }
+}

@@ -1,0 +1,8 @@
+def renameBuildFiles(project) {
+  project.buildFileName = "${project.name}.gradle"
+  project.children.each { childProject ->
+    renameBuildFiles(childProject)
+  }
+}
+rootProject.name = 'livingdoc-gradle'
+renameBuildFiles(rootProject)
