@@ -10,7 +10,7 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.TaskAction
 
-class RunLivingDocSpecsTask extends DefaultTask{
+class RunLivingDocSpecsTask extends DefaultTask {
 
   @InputDirectory
   File workingDir
@@ -23,12 +23,12 @@ class RunLivingDocSpecsTask extends DefaultTask{
 
   @Input
   Boolean showOutput = false
-  
+
   @TaskAction
   void runLivingDoc() {
-    
+
     List<String> processCmd = ["${System.properties.'java.home'}${File.separator}bin${File.separator}java".toString(), '-cp', classPath]
-    processCmd += procArgs.findAll{ !it.isEmpty() }.collect{ it.toString() }
+    processCmd += procArgs.findAll { !it.isEmpty() }.collect { it.toString() }
     logger.info("Execute the process with: {}", processCmd.iterator().join(' '))
 
     ProcessBuilder processBuilder = new ProcessBuilder(processCmd)
@@ -41,12 +41,12 @@ class RunLivingDocSpecsTask extends DefaultTask{
     if (showOutput) {
       procRunner.inputStream.eachLine { println it }
     }
-    
+
     procRunner.waitFor();
 
     if (procRunner.exitValue() != 0) {
       throw new GradleException("Execution failed for task " + this.name)
     }
   }
-  
+
 }

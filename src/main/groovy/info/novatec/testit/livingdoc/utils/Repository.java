@@ -82,19 +82,19 @@ public class Repository {
     }
 
     public DocumentRepository newInstance() throws IllegalArgumentException, InstantiationException, IllegalAccessException,
-        InvocationTargetException, ClassNotFoundException, SecurityException, NoSuchMethodException {
-        Class< ? > klass = Class.forName(type);
-        if ( ! DocumentRepository.class.isAssignableFrom(klass)) {
+            InvocationTargetException, ClassNotFoundException, SecurityException, NoSuchMethodException {
+        Class<?> klass = Class.forName(type);
+        if (!DocumentRepository.class.isAssignableFrom(klass)) {
             throw new IllegalArgumentException("Not a " + DocumentRepository.class.getName() + ": " + type);
         }
 
-        Constructor< ? > constructor = klass.getConstructor(String[].class);
-        return ( DocumentRepository ) constructor.newInstance(new Object[] { new String[] { root } });
+        Constructor<?> constructor = klass.getConstructor(String[].class);
+        return (DocumentRepository) constructor.newInstance(new Object[]{new String[]{root}});
     }
 
     public DocumentRepository getDocumentRepository() throws SecurityException, IllegalArgumentException,
-        InstantiationException, IllegalAccessException, InvocationTargetException, ClassNotFoundException,
-        NoSuchMethodException {
+            InstantiationException, IllegalAccessException, InvocationTargetException, ClassNotFoundException,
+            NoSuchMethodException {
         if (documentRepository == null) {
             documentRepository = newInstance();
         }

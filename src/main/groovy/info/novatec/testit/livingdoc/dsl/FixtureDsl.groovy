@@ -1,46 +1,48 @@
 package info.novatec.testit.livingdoc.dsl
 
-import java.io.File
-
 import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 
-class LivingDocDsl {
-  
+/**
+ * Created by nni on 08.07.16.
+ */
+class FixtureDsl {
+
   public String name
-  
+
+  public Project project
+
   public File fixtureSourceDirectory
 
   public File specsDirectory
 
   public File reportsDirectory
-  
+
   public String systemUnderDevelopment = 'info.novatec.testit.livingdoc.systemunderdevelopment.DefaultSystemUnderDevelopment'
 
   public String reportsType
 
   public String sud
-  
+
   public String livingDocRunner = 'info.novatec.testit.livingdoc.runner.Main'
-  
+
   public List<String> additionalRunArgs
-  
+
   public String additionalRunClasspath
 
-  public NamedDomainObjectContainer<LivingDocResourceDsl> resources
-  
-  public NamedDomainObjectContainer<LivingDocResourceDsl> repositories
-  
   public Boolean debug = false
-  
-  public LivingDocDsl(String name) {
+
+  public NamedDomainObjectContainer<FixtureResourcesDsl> resources
+
+  public FixtureDsl(String name, Project project) {
     this.name = name
+    this.project = project
+    this.specsDirectory = new File("${project.buildDir.path}/${project.LIVINGDOC_SOURCESET_NAME}/specs")
+    this.reportsDirectory = new File("${project.buildDir.path}/${project.LIVINGDOC_SOURCESET_NAME}/reports")
   }
-  
+
   public void resources(final Closure configureClosure) {
     resources.configure(configureClosure)
-  }
-  
-  public void repositories(final Closure configureClosure) {
-    repositories.configure(configureClosure)
   }
 }
