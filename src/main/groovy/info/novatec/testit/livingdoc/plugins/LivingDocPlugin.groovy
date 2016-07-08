@@ -2,28 +2,23 @@ package info.novatec.testit.livingdoc.plugins
 
 import info.novatec.testit.livingdoc.conventions.LivingDocPluginConvention
 import info.novatec.testit.livingdoc.dsl.LivingDocDsl
-import info.novatec.testit.livingdoc.dsl.LivingDocRepositoryDsl;
-import info.novatec.testit.livingdoc.dsl.LivingDocResourceDsl;
+import info.novatec.testit.livingdoc.dsl.LivingDocRepositoryDsl
+import info.novatec.testit.livingdoc.dsl.LivingDocResourceDsl
 import info.novatec.testit.livingdoc.tasks.FreezeTask
-import info.novatec.testit.livingdoc.tasks.RunLivingDocSpecsTask;
-
+import info.novatec.testit.livingdoc.tasks.RunLivingDocSpecsTask
 import org.gradle.api.DefaultTask
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.logging.Logger;
-import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.NamedDomainObjectContainer
-
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.bundling.Jar
 
 class LivingDocPlugin implements Plugin<Project> {
 
   private Project project
-
-  private RunLivingDocSpecsTask runLivingDocSpecsTask
 
   NamedDomainObjectContainer<LivingDocDsl> livingDocExtContainer
 
@@ -54,11 +49,12 @@ class LivingDocPlugin implements Plugin<Project> {
       this.project.configurations.getByName(extensionSourceSet.getRuntimeConfigurationName()).extendsFrom(this.project.configurations."${ldDefautSS.getRuntimeConfigurationName()}")
       Jar compileFixturesTask = this.createCompileFixturesTask(livingdocExtension, extensionSourceSet)
       this.project.afterEvaluate {
-        this.livingDocExtContainerPrerequisite(livingdocExtension)
+        this.livingDocExtContainerCheckPrerequisite(livingdocExtension)
         this.configureSourceSet(livingdocExtension, extensionSourceSet)
         if (livingdocExtension.repositories) {
           this.manageFreezeFromRepositories(livingdocExtension)
-          this.createRunTasks(compileFixturesTask, livingdocExtension, extensionSourceSet)
+          RunLivingDocSpecsTask runSpecsTask = this.createRunTasks(compileFixturesTask, livingdocExtension, extensionSourceSet)
+          runSpecsTask.dependsOn compileFixturesTask
         }
       }
     }
@@ -71,8 +67,8 @@ class LivingDocPlugin implements Plugin<Project> {
     SourceSet extensionSourceSet = this.project.sourceSets.create("${this.project.LIVINGDOC_SOURCESET_NAME}${extensionName.capitalize()}")
     this.project.configurations.getByName(extensionSourceSet.getCompileConfigurationName()){ transitive = false }
     this.project.configurations.getByName(extensionSourceSet.getRuntimeConfigurationName()){ transitive = false }
-    logger.info("Configuration with name ${} created!!!", extensionSourceSet.getCompileConfigurationName())
-    logger.info("Configuration with name ${} created!!!", extensionSourceSet.getRuntimeConfigurationName())
+    logger.info("Configuration {} created!!!", extensionSourceSet.getCompileConfigurationName())
+    logger.info("Configuration {} created!!!", extensionSourceSet.getRuntimeConfigurationName())
 
     this.project.plugins.withType(JavaPlugin) {
       this.project.configure(extensionSourceSet) {
@@ -99,7 +95,7 @@ class LivingDocPlugin implements Plugin<Project> {
     this.project.configure(extensionSourceSet) {
       logger.info("Configure sourceSet {}", extensionSourceSet.name)
       logger.info("{} fixtureSourceDirectory is {}", extensionSourceSet.name, livingdocExtension.fixtureSourceDirectory?.path)
-      logger.info("{} resources directory is {}", extensionSourceSet.name,livingdocExtension.resources?.collect { it.directory?.path }.iterator().join(', '))
+      logger.info("{} resources directory is {}", extensionSourceSet.name,livingdocExtension.resources?.collect { it.directory?.path }?.iterator()?.join(', '))
       java.srcDirs this.project.file(livingdocExtension.fixtureSourceDirectory?.path)
       if (livingdocExtension.resources) {
         livingdocExtension.resources.each { resource ->
@@ -129,11 +125,11 @@ class LivingDocPlugin implements Plugin<Project> {
 
   private void manageFreezeFromRepositories(LivingDocDsl livingdocExtension) {
     def freezeTasks = []
-    livingdocExtension.repositories.each {
-      if (!it.repositoryURL || !it.repositoryUID || !it.respositoryImplementation) {
-        throw new Exception("Some of the required repository attributes (repositoryURL, repositoryUID, respositoryImplementation) from ${it.name} are empty!")
+    livingdocExtension.repositories.each { LivingDocRepositoryDsl repository ->
+      if (!repository.url || !repository.uid || !repository.implementation) {
+        throw new Exception("Some of the required repository attributes (url, uid, implementation) from ${repository.name} are empty!")
       }
-      freezeTasks += this.createFreezeTask(livingdocExtension, it)
+      freezeTasks += createFreezeTask(livingdocExtension, repository)
     }
     if (this.livingDocExtContainer.size() > 1) {
       DefaultTask freezeAllRepositoriesSpecsTask = this.project.tasks.maybeCreate("freezeAllSpecs", DefaultTask)
@@ -150,10 +146,11 @@ class LivingDocPlugin implements Plugin<Project> {
     this.project.configure(freezeTask) {
       group this.project.LIVINGDOC_TASKS_GROUP
       description "Freezes the LivingDoc specifications of ${repository.name} repository"
-      repositoryUrl repository.repositoryURL
-      repositoryUid repository.repositoryUID
-      repositoryImplementation repository.respositoryImplementation
+      repositoryUrl repository.url
+      repositoryUid repository.uid
+      repositoryImplementation repository.implementation
       specsDirectory livingdocExtension.specsDirectory.path
+      specificationFilter repository.filter
     }
     return freezeTask
   }
@@ -161,7 +158,7 @@ class LivingDocPlugin implements Plugin<Project> {
   /**
    * Creates a run task per LivingDocDsl configuration
    */
-  private createRunTasks(Jar compileFixturesTask, LivingDocDsl livingdocExtension, SourceSet extensionSourceSet) {
+  private RunLivingDocSpecsTask createRunTasks(Jar compileFixturesTask, LivingDocDsl livingdocExtension, SourceSet extensionSourceSet) {
     RunLivingDocSpecsTask livingDocRunTask = project.tasks.create("run${this.project.LIVINGDOC_SOURCESET_NAME.capitalize()}${livingdocExtension.name.capitalize()}", RunLivingDocSpecsTask)
     def additionalClasspath = livingdocExtension.additionalRunClasspath ?: ""
     def additionalRunArgs = livingdocExtension.additionalRunArgs ?: []
@@ -184,9 +181,10 @@ class LivingDocPlugin implements Plugin<Project> {
       ]
       showOutput true
     }
+    return livingDocRunTask
   }
 
-  private livingDocExtContainerPrerequisite(LivingDocDsl extension) {
+  private livingDocExtContainerCheckPrerequisite(LivingDocDsl extension) {
     if (!extension.fixtureSourceDirectory || !extension.specsDirectory || !extension.systemUnderDevelopment) {
       throw new Exception("Some of the required attributes (fixtureSourceDirectory, specsDirectory, systemUnderDevelopment) from ${extension.name} are empty!")
     }

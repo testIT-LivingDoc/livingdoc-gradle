@@ -33,7 +33,7 @@ class LivingDocPluginTest extends Specification {
   }
     
     
-  def "insert two livingdoc configuration"() {
+  def "add two LivingDoc repositories and check that the freeze task are created after this"() {
       expect:
       project.apply plugin: JavaPlugin
       project.sourceSets.size() == 3
@@ -43,18 +43,18 @@ class LivingDocPluginTest extends Specification {
         intTest {
           repositories {
             localRepo {
-              respositoryImplementation = "info.novatec.testit.livingdoc.repository.LivingDocRepository"
-              repositoryURL = "REPOSITORY_URL"
-              repositoryUID = "REPOSITORY_UID"
+              implementation = "info.novatec.testit.livingdoc.repository.LivingDocRepository"
+              url = "REPOSITORY_URL"
+              uid = "REPOSITORY_UID"
             }
           }
         }
         uiTest {
           repositories {
             localRepo {
-              respositoryImplementation = "info.novatec.testit.livingdoc.repository.LivingDocRepository"
-              repositoryURL = "REPOSITORY_URL"
-              repositoryUID = "REPOSITORY_UID"
+              implementation = "info.novatec.testit.livingdoc.repository.LivingDocRepository"
+              url = "REPOSITORY_URL"
+              uid = "REPOSITORY_UID"
             }
           }
         }

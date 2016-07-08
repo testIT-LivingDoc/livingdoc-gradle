@@ -4,11 +4,13 @@ class LivingDocRepositoryDsl {
   
   public String name
   
-  public String respositoryImplementation
+  public String implementation
 
-  public String repositoryURL
+  public String url
 
-  public String repositoryUID
+  public String uid
+
+  public String filter = /.*/
   
   LivingDocRepositoryDsl(String name) {
     this.name = name

@@ -24,13 +24,17 @@ class FreezeTask extends DefaultTask {
   
   @Input
   String repositoryImplementation
-  
+
+  @Input
+  String specificationFilter
+
   @TaskAction
   void freezeSpecifications() {
-    assert repositoryUrl != null, 'repositoryUrl cannot be null'
-    assert repositoryUid != null, 'repositoryUid cannot be null'
-    assert specsDirectory != null, 'freezeTargetDir cannot be null'
-    assert repositoryImplementation != null, 'repositoryImplementation cannot be null'
+    assert repositoryUrl != null, 'Error: The repositoryUrl cannot be null'
+    assert repositoryUid != null, 'Error: The repositoryUid cannot be null'
+    assert specsDirectory != null, 'Error: The freezeTargetDir cannot be null'
+    assert repositoryImplementation != null, 'Error: The repositoryImplementation cannot be null'
+    assert (specificationFilter != null && !specificationFilter.isEmpty()), 'Error: Specification filter cannot be null or empty'
     
     File specsDir = new File(specsDirectory);
     specsDir.deleteDir()
@@ -43,10 +47,8 @@ class FreezeTask extends DefaultTask {
     repository.setRoot(repositoryUrl);
     
     this.freeze(repository.getDocumentRepository())
-    
-    File specSourceDir = new File(specsDirectory, repositoryUid)
 
-    logger.info("Freezing and sorting specifications completed.")
+    logger.info("Freezing from specifications completed.")
   }
   
   private void freeze(DocumentRepository repository) {
@@ -55,14 +57,14 @@ class FreezeTask extends DefaultTask {
     Document doc;
     Report report;
 
-    List<String> specifications = repository.listDocuments(repositoryUid)
+    List<String> specifications = repository.listDocuments(repositoryUid).findAll { it ==~ specificationFilter }
 
     specifications.each() { String specification ->
       doc = repository.loadDocument(specification);
       report = generator.openReport(specification);
       report.generate(doc);
       generator.closeReport(report);
-      logger.lifecycle("Downloading: ${specification}")
+      logger.info("Specification ${specification} was successful freezed")
     }
   }
 }
