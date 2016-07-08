@@ -7,6 +7,9 @@ sourceCompatibility = 1.6
 
 repositories {
   jcenter()
+  maven {
+    url "https://oss.sonatype.org/content/repositories/snapshots"
+  }
 }
 
 configurations.all {
