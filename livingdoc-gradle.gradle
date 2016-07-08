@@ -3,6 +3,7 @@ apply plugin: 'maven'
 
 version = LIVINGDOC_GRADLE_VERSION
 group = "info.novatec.testit"
+sourceCompatibility = 1.6
 
 repositories {
   jcenter()
