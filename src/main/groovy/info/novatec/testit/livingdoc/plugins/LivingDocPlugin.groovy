@@ -224,11 +224,11 @@ class LivingDocPlugin implements Plugin<Project> {
         if (repository.sortfilter.isEmpty()) {
           freezePaths << repository.freezeDirectory.path
         } else {
-          freezePaths += repository.sortfilter.collect { "${repository.freezeDirectory.path}/${it.path}" }
+          freezePaths += repository.sortfilter.collect { "${repository.freezeDirectory.path}/${it.path}".toString() }
         }
       }
     }
-    if (this.repositoriesContainer.isEmpty() || !freezePaths.contains(fixture.specsDirectory.path)) {
+    if (this.repositoriesContainer.isEmpty() || freezePaths.findAll { it.equals(fixture.specsDirectory.path) }.isEmpty()) {
       logger.warn("WARRNING: The fixture configuration {} specsDirectory path \"{}\" cannot be found in any freeze task configuration", fixture.name, fixture.specsDirectory)
     }
   }

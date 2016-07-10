@@ -72,12 +72,12 @@ In order to use this plugin an appropriate configuration is needed e.g.:
           url = "http://localhost:1990/confluence/rpc/xmlrpc?handler=livingdoc1&sut=Demo&includeStyle=true&implemented=true#LIVINGDOCDEMO"
           uid = "Confluence-LIVINGDOCDEMO"
           freezeDirectory = file("${buildDir.path}/livingdoc/Daimler Xentry Portal Confluence-LDXC")
-    			sortfilter {
-    				uiTests {
-    					path = "uiTests"
-    					filter = "*UITEST.html"
-    				}
-    			}
+          sortfilter {
+            uiTests {
+              path = "uiTests"
+              filter = "*UITEST.html"
+            }
+          }
         }
       }
     }
@@ -111,24 +111,24 @@ The livingdoc extension block can contains two different types of configurations
         sortfilter {
 
           // a random name
-  				filterIntTests {
+          filterIntTests {
 
             // the path where the specifications will be copied after the filter is applied
-  					path = "INTTESTS"
+            path = "INTTESTS"
 
             // corresponds to the gradle copy task [includes](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:includes)
-  					filter = "*INTTEST.html"
+            filter = "*INTTEST.html"
 
           }
 
           // a random name
-  				filterUiTests {
+          filterUiTests {
 
             // the path where the specifications will be copied after the filter is applied
-  					path = "UITESTS"
+            path = "UITESTS"
 
             // corresponds to the gradle copy task [includes](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:includes)
-  					filter = "*UITEST.html"
+            filter = "*UITEST.html"
 
           }
 
@@ -141,7 +141,7 @@ The livingdoc extension block can contains two different types of configurations
 #### The __fixtures__ configuration can contains one or more fixture configurations and represents a group of Java sources, resources and their configurations e.g.:
 
     fixtures {
-      
+
       // a random name, in order to identify the used sourceSet of resources
       uiTest {
 

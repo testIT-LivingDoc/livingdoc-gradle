@@ -28,7 +28,7 @@ class RunLivingDocSpecsTask extends DefaultTask {
   void runLivingDoc() {
 
     List<String> processCmd = ["${System.properties.'java.home'}${File.separator}bin${File.separator}java".toString(), '-cp', classPath]
-    processCmd += procArgs.findAll { !it.isEmpty() }.collect { it.toString() }
+    processCmd += procArgs.findAll { !it.toString().isEmpty() }.collect { it.toString() }
     logger.info("Execute the process with: {}", processCmd.iterator().join(' '))
 
     ProcessBuilder processBuilder = new ProcessBuilder(processCmd)
