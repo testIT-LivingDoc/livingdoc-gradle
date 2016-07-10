@@ -206,7 +206,7 @@ class LivingDocPlugin implements Plugin<Project> {
               '-s',
               fixture.specsDirectory?.path,
               '-o',
-              ((fixture.reportsDirectory) ? fixture.reportsDirectory.path : project.buildDir.path + '/livingdoc/reports')
+              fixture.reportsDirectory
       ]
       showOutput true
     }
