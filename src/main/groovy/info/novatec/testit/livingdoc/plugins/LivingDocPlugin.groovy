@@ -194,7 +194,7 @@ class LivingDocPlugin implements Plugin<Project> {
     this.project.configure(task) {
       group this.project.LIVINGDOC_TASKS_GROUP
       description "Run ${fixture.name} specifications from directory ${fixture.specsDirectory.path} on the ${this.project}"
-      workingDir this.project.projectDir
+      workingDir fixture.runLivingdocDirectory
       classPath additionalClasspath + File.pathSeparator + compileFixturesTask.archivePath.path + File.pathSeparator + fixtureSourceSet.runtimeClasspath.asPath
       procArgs += [
               *additionalRunArgs,

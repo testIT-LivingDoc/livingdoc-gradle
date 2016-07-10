@@ -19,6 +19,8 @@ class FixtureDsl {
 
   public File reportsDirectory
 
+  public File runLivingdocDirectory
+
   public String systemUnderDevelopment = 'info.novatec.testit.livingdoc.systemunderdevelopment.DefaultSystemUnderDevelopment'
 
   public String reportsType
@@ -40,6 +42,7 @@ class FixtureDsl {
     this.project = project
     this.specsDirectory = new File("${project.buildDir.path}${File.separator}${project.LIVINGDOC_SOURCESET_NAME}${File.separator}specs")
     this.reportsDirectory = new File("${project.buildDir.path}${File.separator}${project.LIVINGDOC_SOURCESET_NAME}${File.separator}reports")
+    this.runLivingdocDirectory = new File(project.projectDir.path)
   }
 
   public void resources(final Closure configureClosure) {

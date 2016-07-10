@@ -1,5 +1,8 @@
 package info.novatec.testit.livingdoc.tasks
 
+import info.novatec.testit.livingdoc.conventions.LivingDocPluginConvention
+import info.novatec.testit.livingdoc.conventions.RunLivingDocSpecsConvention
+
 import java.io.File;
 import java.util.List;
 
@@ -26,8 +29,9 @@ class RunLivingDocSpecsTask extends DefaultTask {
 
   @TaskAction
   void runLivingDoc() {
+    this.project.convention.plugins.runLivingdocSpecs = new RunLivingDocSpecsConvention()
 
-    List<String> processCmd = ["${System.properties.'java.home'}${File.separator}bin${File.separator}java".toString(), '-cp', classPath]
+    List<String> processCmd = ["${this.project.LIVINGDOC_JAVA}${File.separator}bin${File.separator}java".toString(), '-cp', classPath]
     processCmd += procArgs.findAll { !it.toString().isEmpty() }.collect { it.toString() }
     logger.info("Execute the process with: {}", processCmd.iterator().join(' '))
 
