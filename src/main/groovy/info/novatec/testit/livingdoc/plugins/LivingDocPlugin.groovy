@@ -159,7 +159,7 @@ class LivingDocPlugin implements Plugin<Project> {
       classifier = fixture.name
       version = this.project.version
       from fixtureSourceSet.output
-      destinationDir this.project.file("${project.buildDir}/${this.project.LIVINGDOC_SOURCESET_NAME}/${fixture.name}")
+      destinationDir this.project.file("${project.buildDir}${File.separator}${this.project.LIVINGDOC_SOURCESET_NAME}${File.separator}${fixture.name}")
     }
     return compileFixturesTask
   }
@@ -224,7 +224,7 @@ class LivingDocPlugin implements Plugin<Project> {
         if (repository.sortfilter.isEmpty()) {
           freezePaths << repository.freezeDirectory.path
         } else {
-          freezePaths += repository.sortfilter.collect { "${repository.freezeDirectory.path}/${it.path}".toString() }
+          freezePaths += repository.sortfilter.collect { "${repository.freezeDirectory.path}${File.separator}${it.path}".toString() }
         }
       }
     }

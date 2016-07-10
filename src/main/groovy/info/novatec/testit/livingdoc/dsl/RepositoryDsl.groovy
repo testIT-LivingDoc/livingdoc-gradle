@@ -22,7 +22,7 @@ class RepositoryDsl {
   public RepositoryDsl(String name, Project project) {
     this.name = name
     this.project = project
-    this.freezeDirectory = new File("${project.buildDir.path}/${project.LIVINGDOC_SOURCESET_NAME}/specs")
+    this.freezeDirectory = new File("${project.buildDir.path}${File.separator}${project.LIVINGDOC_SOURCESET_NAME}${File.separator}specs")
   }
 
   public void sortfilter(final Closure configureClosure) {

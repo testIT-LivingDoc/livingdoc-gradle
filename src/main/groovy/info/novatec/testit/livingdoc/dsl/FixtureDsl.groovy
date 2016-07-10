@@ -38,8 +38,8 @@ class FixtureDsl {
   public FixtureDsl(String name, Project project) {
     this.name = name
     this.project = project
-    this.specsDirectory = new File("${project.buildDir.path}/${project.LIVINGDOC_SOURCESET_NAME}/specs")
-    this.reportsDirectory = new File("${project.buildDir.path}/${project.LIVINGDOC_SOURCESET_NAME}/reports")
+    this.specsDirectory = new File("${project.buildDir.path}${File.separator}${project.LIVINGDOC_SOURCESET_NAME}${File.separator}specs")
+    this.reportsDirectory = new File("${project.buildDir.path}${File.separator}${project.LIVINGDOC_SOURCESET_NAME}${File.separator}reports")
   }
 
   public void resources(final Closure configureClosure) {
