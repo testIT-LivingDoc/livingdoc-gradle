@@ -12,6 +12,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.plugins.ExtensionAware
@@ -64,14 +65,14 @@ class LivingDocPlugin implements Plugin<Project> {
     }
 
     this.project.afterEvaluate {
-      this.fixturesContainer.each { FixtureDsl fixture ->
-        this.checkFixturePrerequisite(fixture)
-        this.configureSourceSet(fixture)
-        RunLivingDocSpecsTask runSpecsTask = this.createRunTasks(this.project.tasks."compile${fixture.name.capitalize()}Jar", fixture)
-        runSpecsTask.dependsOn this.project.tasks."compile${fixture.name.capitalize()}Jar"
-      }
       this.repositoriesContainer.each { RepositoryDsl repository ->
         this.createFreezeTask(repository)
+      }
+      this.fixturesContainer.each { FixtureDsl fixture ->
+        FreezeTask freezeTaskForFixture = this.checkFixturePrerequisite(fixture)
+        this.configureSourceSet(fixture)
+        RunLivingDocSpecsTask runSpecsTask = this.createRunTasks(this.project.tasks."compile${fixture.name.capitalize()}Jar", freezeTaskForFixture, fixture)
+        runSpecsTask.dependsOn this.project.tasks."compile${fixture.name.capitalize()}Jar"
       }
     }
   }
@@ -186,7 +187,7 @@ class LivingDocPlugin implements Plugin<Project> {
   /**
    * Creates a run task per fixture configuration
    */
-  private RunLivingDocSpecsTask createRunTasks(Jar compileFixturesTask, FixtureDsl fixture) {
+  private RunLivingDocSpecsTask createRunTasks(Jar compileFixturesTask, FreezeTask freezeTaskForFixture, FixtureDsl fixture) {
     SourceSet fixtureSourceSet = this.getFixtureSourceSet(fixture)
     RunLivingDocSpecsTask task = project.tasks.create("run${this.project.LIVINGDOC_SOURCESET_NAME.capitalize()}${fixture.name.capitalize()}", RunLivingDocSpecsTask)
     def additionalClasspath = fixture.additionalRunClasspath ?: ""
@@ -202,34 +203,43 @@ class LivingDocPlugin implements Plugin<Project> {
               '-f',
               fixture.systemUnderDevelopment + ';' + fixture.sud,
               ((fixture.debug) ? '--debug' : ''),
-              ((fixture.reportsType) ? '--' + fixture.reportsType : ''),
-              '-s',
-              fixture.specsDirectory?.path,
-              '-o',
-              fixture.reportsDirectory
+              ((fixture.reportsType) ? '--' + fixture.reportsType : '')
       ]
+      if (freezeTaskForFixture) {
+        specsDirectory = this.project.files(fixture.specsDirectory) {
+          builtBy freezeTaskForFixture
+        }
+      } else {
+        specsDirectory = this.project.files(fixture.specsDirectory)
+      }
+      reportsDirectory = fixture.reportsDirectory
       showOutput true
     }
     logger.info("Task {} created for sourceSet {}", task, fixtureSourceSet)
     return task
   }
 
-  private checkFixturePrerequisite(FixtureDsl fixture) {
+  private Task checkFixturePrerequisite(FixtureDsl fixture) {
     if (!fixture.fixtureSourceDirectory || !fixture.specsDirectory || !fixture.systemUnderDevelopment) {
       throw new Exception("Some of the required attributes (fixtureSourceDirectory, specsDirectory, systemUnderDevelopment) from ${fixture.name} are empty!")
     }
-    def freezePaths = []
+    def freezePaths = [:]
     if (!this.repositoriesContainer.isEmpty()) {
       this.repositoriesContainer.each { RepositoryDsl repository ->
         if (repository.sortfilter.isEmpty()) {
-          freezePaths << repository.freezeDirectory.path
+          freezePaths << [(repository.freezeDirectory.path):repository.name]
         } else {
-          freezePaths += repository.sortfilter.collect { "${repository.freezeDirectory.path}${File.separator}${it.path}".toString() }
+          repository.sortfilter.each {
+            freezePaths << [("${repository.freezeDirectory.path}${File.separator}${it.path}".toString()):repository.name]
+          }
         }
       }
     }
-    if (this.repositoriesContainer.isEmpty() || freezePaths.findAll { it.equals(fixture.specsDirectory.path) }.isEmpty()) {
+    if (freezePaths.get(fixture.specsDirectory.path)) {
+      return this.project.tasks.findByName("freeze${freezePaths.get(fixture.specsDirectory.path).capitalize()}Specs")
+    } else {
       logger.warn("WARRNING: The fixture configuration {} specsDirectory path \"{}\" cannot be found in any freeze task configuration", fixture.name, fixture.specsDirectory)
+      return null
     }
   }
 
