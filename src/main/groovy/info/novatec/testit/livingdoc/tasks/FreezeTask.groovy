@@ -1,5 +1,7 @@
 package info.novatec.testit.livingdoc.tasks
 
+import info.novatec.testit.livingdoc.conventions.FreezeTaskConvention
+import info.novatec.testit.livingdoc.conventions.LivingDocPluginConvention
 import info.novatec.testit.livingdoc.document.Document
 import info.novatec.testit.livingdoc.dsl.RepositoryFixtureFilterDsl
 import info.novatec.testit.livingdoc.report.FileReportGenerator
@@ -38,6 +40,9 @@ class FreezeTask extends DefaultTask {
     assert specsDirectory != null, 'Error: The freezeTargetDir cannot be null'
     assert repositoryImplementation != null, 'Error: The repositoryImplementation cannot be null'
 
+
+    this.project.convention.plugins.freezeSpecsFilter = new FreezeTaskConvention()
+
     specsDirectory.deleteDir()
     specsDirectory.mkdir()
 
@@ -68,8 +73,8 @@ class FreezeTask extends DefaultTask {
     Document doc;
     Report report;
 
-    List<String> specifications = repository.listDocuments(repositoryUid)
-
+    List<String> specifications = repository.listDocuments(repositoryUid).findAll { it.toString() ==~ /${this.project.FREEZE_SPECS_FILTER}/ }
+    
     specifications.each() { String specification ->
       doc = repository.loadDocument(specification);
       report = generator.openReport(specification);
