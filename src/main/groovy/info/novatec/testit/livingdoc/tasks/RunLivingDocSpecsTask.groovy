@@ -6,6 +6,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.SourceSet
 
 import java.io.File;
 import java.util.List;
@@ -19,53 +20,54 @@ import org.gradle.api.tasks.TaskAction
 
 class RunLivingDocSpecsTask extends DefaultTask {
 
-  @InputDirectory
-  File workingDir
+    @InputDirectory
+    File workingDir
 
-  /**
-   * This FileCollection should always contain only one file
-   */
-  @InputFiles
-  FileCollection specsDirectory
+    /**
+     * This FileCollection should always contain only one file
+     */
+    @InputFiles
+    FileCollection specsDirectory
 
-  @OutputDirectory
-  File reportsDirectory
+    @OutputDirectory
+    File reportsDirectory
 
-  @Input
-  String classPath
+    String classPath
 
-  @Input
-  List<String> procArgs = []
+    List<String> procArgs = []
 
-  @Input
-  Boolean showOutput = false
+    Boolean showOutput = false
 
-  @TaskAction
-  void runLivingDoc() {
-    this.project.convention.plugins.runLivingdocSpecs = new RunLivingDocSpecsConvention()
+    SourceSet fixtureSourceSet
 
-    List<String> processCmd = ["${this.project.LIVINGDOC_JAVA}${File.separator}bin${File.separator}java".toString(), '-cp', classPath]
-    processCmd += procArgs.findAll { !it.toString().isEmpty() }.collect { it.toString() }
-    processCmd += ['-s', specsDirectory.asPath]
-    processCmd += ['-o', reportsDirectory.path]
-    logger.info("Execute the process with: {}", processCmd.iterator().join(' '))
+    @TaskAction
+    void runLivingDoc() {
+        this.project.convention.plugins.runLivingdocSpecs = new RunLivingDocSpecsConvention()
 
-    ProcessBuilder processBuilder = new ProcessBuilder(processCmd)
-    processBuilder.redirectErrorStream(true)
-    processBuilder.directory(workingDir)
-    logger.info("Set the working dir of the process execution to: {}", workingDir)
+        classPath += File.pathSeparator + fixtureSourceSet.getRuntimeClasspath().asPath
 
-    Process procRunner = processBuilder.start()
+        List<String> processCmd = ["${this.project.LIVINGDOC_JAVA}${File.separator}bin${File.separator}java".toString(), '-cp', classPath]
+        processCmd += procArgs.findAll { !it.toString().isEmpty() }.collect { it.toString() }
+        processCmd += ['-s', specsDirectory.asPath]
+        processCmd += ['-o', reportsDirectory.path]
+        logger.info("Execute the process with: {}", processCmd.iterator().join(' '))
 
-    if (showOutput) {
-      procRunner.inputStream.eachLine { println it }
+        ProcessBuilder processBuilder = new ProcessBuilder(processCmd)
+        processBuilder.redirectErrorStream(true)
+        processBuilder.directory(workingDir)
+        logger.info("Set the working dir of the process execution to: {}", workingDir)
+
+        Process procRunner = processBuilder.start()
+
+        if (showOutput) {
+            procRunner.inputStream.eachLine { println it }
+        }
+
+        procRunner.waitFor();
+
+        if (procRunner.exitValue() != 0) {
+            throw new GradleException("Execution failed for task " + this.name)
+        }
     }
-
-    procRunner.waitFor();
-
-    if (procRunner.exitValue() != 0) {
-      throw new GradleException("Execution failed for task " + this.name)
-    }
-  }
 
 }
