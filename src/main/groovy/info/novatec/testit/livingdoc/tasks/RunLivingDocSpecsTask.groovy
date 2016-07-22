@@ -1,5 +1,13 @@
 package info.novatec.testit.livingdoc.tasks
 
+import info.novatec.testit.livingdoc.conventions.LivingDocPluginConvention
+import info.novatec.testit.livingdoc.conventions.RunLivingDocSpecsConvention
+import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectories
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.SourceSet
+
 import java.io.File;
 import java.util.List;
 
@@ -10,43 +18,56 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.TaskAction
 
-class RunLivingDocSpecsTask extends DefaultTask{
+class RunLivingDocSpecsTask extends DefaultTask {
 
-  @InputDirectory
-  File workingDir
+    @InputDirectory
+    File workingDir
 
-  @Input
-  String classPath
+    /**
+     * This FileCollection should always contain only one file
+     */
+    @InputFiles
+    FileCollection specsDirectory
 
-  @Input
-  List<String> procArgs = []
+    @OutputDirectory
+    File reportsDirectory
 
-  @Input
-  Boolean showOutput = false
-  
-  @TaskAction
-  void runLivingDoc() {
-    
-    List<String> processCmd = ["${System.properties.'java.home'}${File.separator}bin${File.separator}java".toString(), '-cp', classPath]
-    processCmd += procArgs.findAll{ !it.isEmpty() }.collect{ it.toString() }
-    logger.info("Execute the process with: {}", processCmd.iterator().join(' '))
+    String classPath
 
-    ProcessBuilder processBuilder = new ProcessBuilder(processCmd)
-    processBuilder.redirectErrorStream(true)
-    processBuilder.directory(workingDir)
-    logger.info("Set the working dir of the process execution to: {}", workingDir)
+    List<String> procArgs = []
 
-    Process procRunner = processBuilder.start()
+    Boolean showOutput = false
 
-    if (showOutput) {
-      procRunner.inputStream.eachLine { println it }
+    SourceSet fixtureSourceSet
+
+    @TaskAction
+    void runLivingDoc() {
+        this.project.convention.plugins.runLivingdocSpecs = new RunLivingDocSpecsConvention()
+
+        classPath += File.pathSeparator + fixtureSourceSet.getRuntimeClasspath().asPath
+
+        List<String> processCmd = ["${this.project.LIVINGDOC_JAVA}${File.separator}bin${File.separator}java".toString(), '-cp', classPath]
+        processCmd += procArgs.findAll { !it.toString().isEmpty() }.collect { it.toString() }
+        processCmd += ['-s', specsDirectory.asPath]
+        processCmd += ['-o', reportsDirectory.path]
+        logger.info("Execute the process with: {}", processCmd.iterator().join(' '))
+
+        ProcessBuilder processBuilder = new ProcessBuilder(processCmd)
+        processBuilder.redirectErrorStream(true)
+        processBuilder.directory(workingDir)
+        logger.info("Set the working dir of the process execution to: {}", workingDir)
+
+        Process procRunner = processBuilder.start()
+
+        if (showOutput) {
+            procRunner.inputStream.eachLine { println it }
+        }
+
+        procRunner.waitFor();
+
+        if (procRunner.exitValue() != 0) {
+            throw new GradleException("Execution failed for task " + this.name)
+        }
     }
-    
-    procRunner.waitFor();
 
-    if (procRunner.exitValue() != 0) {
-      throw new GradleException("Execution failed for task " + this.name)
-    }
-  }
-  
 }

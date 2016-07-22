@@ -1,12 +1,12 @@
 package info.novatec.testit.livingdoc.dsl
 
-class LivingDocResourceDsl {
+class FixtureResourcesDsl {
 
   public String name
-  
+
   public File directory
-  
-  public LivingDocResourceDsl(String name) {
+
+  public FixtureResourcesDsl(String name) {
     this.name = name;
   }
 }
