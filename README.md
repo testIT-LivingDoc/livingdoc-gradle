@@ -1,7 +1,7 @@
 # livingdoc-gradle
 LivingDoc Plugin for Gradle
 
-[![Build Status](https://travis-ci.org/nachevn/livingdoc-gradle.svg?branch=master)](https://travis-ci.org/nachevn/livingdoc-gradle)
+[![Build Status](https://travis-ci.org/testIT-LivingDoc/livingdoc-gradle.svg?branch=master)](https://travis-ci.org/testIT-LivingDoc/livingdoc-gradle)
 
 This plugin enables you to freeze and run any LivingDoc specifications as part of your build.
 
