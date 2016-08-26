@@ -71,7 +71,6 @@ class LivingDocPlugin implements Plugin<Project> {
             }
             this.fixturesContainer.each { FixtureDsl fixture ->
                 FreezeTask freezeTaskForFixture = this.checkFixturePrerequisite(fixture, repoFilters)
-                // "${freezeTaskForFixture?.name} for fixture ${fixture.name}"
                 this.configureSourceSet(fixture)
                 RunLivingDocSpecsTask runSpecsTask = this.createRunTasks(this.project.tasks."compile${fixture.name.capitalize()}Jar", freezeTaskForFixture, fixture)
                 runSpecsTask.dependsOn this.project.tasks."compile${fixture.name.capitalize()}Jar"
@@ -203,7 +202,7 @@ class LivingDocPlugin implements Plugin<Project> {
                     *additionalRunArgs,
                     fixture.livingDocRunner,
                     '-f',
-                    fixture.systemUnderDevelopment + ';' + fixture.sud,
+                    fixture.systemUnderDevelopment + ';' + fixture.systemUnterTest,
                     ((fixture.debug) ? '--debug' : ''),
                     ((fixture.reportsType) ? '--' + fixture.reportsType : '')
             ]

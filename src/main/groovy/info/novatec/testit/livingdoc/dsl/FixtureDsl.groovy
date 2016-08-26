@@ -25,7 +25,7 @@ class FixtureDsl {
 
   public String reportsType
 
-  public String sud
+  public String systemUnterTest
 
   public String livingDocRunner = 'info.novatec.testit.livingdoc.runner.Main'
 

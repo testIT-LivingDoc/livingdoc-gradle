@@ -78,11 +78,15 @@ class FreezeTask extends DefaultTask {
         logger.info("Freeze specifications {} (filter: {})", specifications, this.specificationsFilter.filter)
 
         specifications.findAll{ it.toString() ==~ /${this.project.FREEZE_SPECS_FILTER}/ }.each() { String specification ->
+            long startTime = System.currentTimeSeconds()
             doc = repository.loadDocument(specification);
             report = generator.openReport(specification);
             report.generate(doc);
             generator.closeReport(report);
-            logger.info("Specification ${specification} was successful freezed")
+            long stopTime = System.currentTimeSeconds();
+            int seconds = (int) (stopTime - startTime) % 60;
+            int minutes = ((int) (stopTime - startTime) - seconds) / 60;
+            logger.info("Specification ${specification} was successful freezed (time duration: ${minutes}:${seconds})")
         }
     }
 
