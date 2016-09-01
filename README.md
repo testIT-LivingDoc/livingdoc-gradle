@@ -71,7 +71,7 @@ In order to use this plugin an appropriate configuration is needed e.g.:
           implementation = "info.novatec.testit.livingdoc.repository.FileSystemRepository"
           url = "http://localhost:1990/confluence/rpc/xmlrpc?handler=livingdoc1&sut=Demo&includeStyle=true&implemented=true#LIVINGDOCDEMO"
           uid = "Confluence-LIVINGDOCDEMO"
-          freezeDirectory = file("${buildDir.path}/livingdoc/Daimler Xentry Portal Confluence-LDXC")
+          freezeDirectory = file("${buildDir.path}/livingdoc/Demo Confluence-LDD")
           sortfilter {
             uiTests {
               path = "uiTests"
