@@ -20,6 +20,7 @@ dependencies {
   compile gradleApi()
   compile localGroovy()
   compile "info.novatec.testit:livingdoc-core:${LIVINGDOC_VERSION}@jar"
+    
   runtime "info.novatec.testit:livingdoc-client:${LIVINGDOC_VERSION}@jar"
   runtime "xmlrpc:xmlrpc:2.0.1"
   runtime "org.apache.commons:commons-lang3:3.4"

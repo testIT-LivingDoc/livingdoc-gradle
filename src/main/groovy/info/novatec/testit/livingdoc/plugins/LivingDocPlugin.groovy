@@ -237,7 +237,8 @@ class LivingDocPlugin implements Plugin<Project> {
             logger.info("Found fixture filter {} for repository {}", filter.path, repository.name)
             return this.project.tasks.findByName("freeze${repository.name.capitalize()}${filter.path.capitalize()}Specs")
         } else {
-            logger.warn("WARRNING: The fixture configuration {} specsDirectory path \"{}\" cannot be found in any freeze task configuration", fixture.name, fixture.specsDirectory)
+            // TODO what if there were no filter but the freezeDirectory and the specsDirectory are set?
+            logger.warn("WARNING: The fixture configuration {} specsDirectory path \"{}\" cannot be found in any freeze task configuration", fixture.name, fixture.specsDirectory)
             return null
         }
     }
