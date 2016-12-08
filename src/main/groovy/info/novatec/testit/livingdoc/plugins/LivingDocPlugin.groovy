@@ -64,13 +64,13 @@ class LivingDocPlugin implements Plugin<Project> {
         }
 
         this.project.afterEvaluate {
-            Map<RepositoryFixtureFilterDsl, RepositoryDsl> repoFilters = this.collectRepositoriesFilters()
-            repoFilters.each { RepositoryFixtureFilterDsl filterDsl, RepositoryDsl repository ->
+            Map<RepositoryFixtureFilterDsl, RepositoryDsl> repositoryFixtureFilters = this.getRepositoryFixtureFilters()
+            repositoryFixtureFilters.each { RepositoryFixtureFilterDsl filterDsl, RepositoryDsl repository ->
                 logger.info("Create a freeze task for repository {} and fixture filter with paht {}", repository.name, filterDsl.path)
                 this.createFreezeTask(repository, filterDsl)
             }
             this.fixturesContainer.each { FixtureDsl fixture ->
-                FreezeTask freezeTaskForFixture = this.checkFixturePrerequisite(fixture, repoFilters)
+                FreezeTask freezeTaskForFixture = this.checkFixturePrerequisite(fixture, repositoryFixtureFilters)
                 this.configureSourceSet(fixture)
                 RunLivingDocSpecsTask runSpecsTask = this.createRunTasks(this.project.tasks."compile${fixture.name.capitalize()}Jar", freezeTaskForFixture, fixture)
                 runSpecsTask.dependsOn this.project.tasks."compile${fixture.name.capitalize()}Jar"
@@ -220,14 +220,15 @@ class LivingDocPlugin implements Plugin<Project> {
         return task
     }
 
-    private Task checkFixturePrerequisite(FixtureDsl fixture, Map<RepositoryFixtureFilterDsl, RepositoryDsl> repoFilters) {
+    private Task checkFixturePrerequisite(FixtureDsl fixture, Map<RepositoryFixtureFilterDsl, RepositoryDsl> repositoryFixtureFilters) {
         if (!fixture.fixtureSourceDirectory || !fixture.specsDirectory || !fixture.systemUnderDevelopment) {
             throw new Exception("Some of the required attributes (fixtureSourceDirectory, specsDirectory, systemUnderDevelopment) from ${fixture.name} are empty!")
         }
         def repository = null
         def filter = null
-        repoFilters.find {
-            fixture.specsDirectory.path.equals(it.value.freezeDirectory.path + File.separator + it.key.path)
+        repositoryFixtureFilters.find {
+            logger.debug("Search for matching fixture path \"{}\" within the repositoryFixtureFilters \"{}\"", fixture.specsDirectory.path, this.project.file(it.value.freezeDirectory.path + File.separator + it.key.path).path)
+            fixture.specsDirectory.path.equals(this.project.file(it.value.freezeDirectory.path + File.separator + it.key.path).path)
         }?.each {
             repository = it.value
             filter = it.key
@@ -243,24 +244,24 @@ class LivingDocPlugin implements Plugin<Project> {
         }
     }
 
-    private Map<RepositoryFixtureFilterDsl, RepositoryDsl> collectRepositoriesFilters() {
-        def repoFilters = [:]
+    private Map<RepositoryFixtureFilterDsl, RepositoryDsl> getRepositoryFixtureFilters() {
+        def repositoryFixtureFilters = [:]
         this.repositoriesContainer.each { RepositoryDsl repository ->
             if (repository.sortfilter.isEmpty()) {
                 RepositoryFixtureFilterDsl fixtureFilter = new RepositoryFixtureFilterDsl()
                 fixtureFilter.path = ''
                 fixtureFilter.filter = ".*"
-                repoFilters[fixtureFilter] = repository
+                repositoryFixtureFilters[fixtureFilter] = repository
                 logger.info("Create default fixtureFilter for {}", repository.name)
             } else {
                 repository.sortfilter.each { RepositoryFixtureFilterDsl fixtureFilter ->
                     logger.info("Found sort filter for {} with path {} and filter {}", repository.name, fixtureFilter.path, fixtureFilter.filter)
-                    repoFilters[fixtureFilter] = repository
+                    repositoryFixtureFilters[fixtureFilter] = repository
                 }
 
             }
         }
-        return repoFilters
+        return repositoryFixtureFilters
     }
 
     private SourceSet getFixtureSourceSet(FixtureDsl fixture) {
