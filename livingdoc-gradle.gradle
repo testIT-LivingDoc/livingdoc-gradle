@@ -15,7 +15,11 @@ repositories {
 configurations.all {
   transitive = false
 }
-  
+
+test {
+  useTestNG()
+}
+
 dependencies {
   compile gradleApi()
   compile localGroovy()
@@ -33,3 +37,12 @@ dependencies {
     exclude module: 'groovy-all'
   }
 }
+
+afterEvaluate { 
+  tasks.withType(org.gradle.api.tasks.compile.GroovyCompile) { 
+    options.compilerArgs = [ 
+            "-Xbootclasspath/p:" + configurations.compile.asPath 
+    ] 
+  } 
+}
+

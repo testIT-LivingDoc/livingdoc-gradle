@@ -2,7 +2,6 @@ package info.novatec.testit.livingdoc.plugins
 
 import spock.lang.*
 import org.gradle.api.*
-import org.gradle.api.plugins.*
 import org.gradle.testfixtures.ProjectBuilder
 
 /**
@@ -46,7 +45,7 @@ class LivingDocPluginTest extends Specification {
         then:
         project.sourceSets.size() == 5
         project.tasks.findAll {
-            it.name.startsWith(project.LIVINGDOC_SOURCESET_NAME) &&  !it.name.startsWith('freeze')
+            it.name.startsWith(project.LIVINGDOC_SOURCESET_NAME) && !it.name.startsWith('freeze')
         }.size() == 3
         project.sourceSets.findAll { it.name.startsWith(project.LIVINGDOC_SOURCESET_NAME) }.size() == 3
     }
